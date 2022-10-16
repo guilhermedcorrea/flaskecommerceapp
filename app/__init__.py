@@ -2,17 +2,10 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
 
-
-
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-
-
 db = SQLAlchemy()
-
-
-def create_app():
+def create_app() -> Flask:
     app = Flask(__name__)
     app.config['UPLOADED_PHOTOS_DEST'] = r'C:\flaskecommerce\images'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(r"C:\flaskecommerce", 'trendy.db')

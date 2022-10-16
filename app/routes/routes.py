@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, Response
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, TextAreaField, HiddenField, SelectField
 from flask_wtf.file import FileField, FileAllowed
@@ -13,6 +13,11 @@ from wtforms import StringField, IntegerField, TextAreaField, HiddenField, Selec
 from flask_wtf.file import FileField, FileAllowed
 from flask import current_app
 from werkzeug.utils import secure_filename
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
+from typing import TypeVar, List
 
 db = SQLAlchemy()
 def configure(app):
@@ -55,8 +60,12 @@ class Checkout(FlaskForm):
     country = SelectField('Country', choices=[('US', 'United States'), ('UK', 'United Kingdom'), ('FRA', 'France')])
     payment_type = SelectField('Payment Type', choices=[('CK', 'Check'), ('WT', 'Wire Transfer')])
 
-def handle_cart():
-    products = []
+from typing import TypeVar, List
+
+T = TypeVar('T')
+
+def handle_cart() ->T:
+    products = list[dict[str,str]]
     grand_total = 0
     index = 0
     quantity_total = 0
@@ -78,13 +87,13 @@ def handle_cart():
     return products, grand_total, grand_total_plus_shipping, quantity_total
 
 @ecommerce_bp.route('/')
-def index():
+def index() -> str:
     products = Product.query.all()
 
     return render_template('index.html', products=products)
 
 @ecommerce_bp.route('/product/<id>')
-def product(id):
+def product(id) -> str:
     product = Product.query.filter_by(id=id).first()
 
     form = AddToCart()
@@ -92,7 +101,7 @@ def product(id):
     return render_template('view-product.html', product=product, form=form)
 
 @ecommerce_bp.route('/quick-add/<id>')
-def quick_add(id):
+def quick_add(id: int) -> Response:
     if 'cart' not in session:
         session['cart'] = []
 
@@ -102,7 +111,7 @@ def quick_add(id):
     return redirect(url_for('ecommerce.index'))
 
 @ecommerce_bp.route('/add-to-cart', methods=['POST'])
-def add_to_cart():
+def add_to_cart() -> Response:
     if 'cart' not in session:
         session['cart'] = []
 
@@ -116,19 +125,19 @@ def add_to_cart():
     return redirect(url_for('ecommerce.index'))
 
 @ecommerce_bp.route('/cart')
-def cart():
+def cart() -> str:
     products, grand_total, grand_total_plus_shipping, quantity_total = handle_cart()
 
     return render_template('cart.html', products=products, grand_total=grand_total, grand_total_plus_shipping=grand_total_plus_shipping, quantity_total=quantity_total)
 
 @ecommerce_bp.route('/remove-from-cart/<index>')
-def remove_from_cart(index):
+def remove_from_cart(index: T) -> Response:
     del session['cart'][int(index)]
     session.modified = True
     return redirect(url_for('ecommerce.cart'))
 
 @ecommerce_bp.route('/checkout', methods=['GET', 'POST'])
-def checkout():
+def checkout() -> (Response | str):
     form = Checkout()
 
     products, grand_total, grand_total_plus_shipping, quantity_total = handle_cart()
@@ -157,7 +166,7 @@ def checkout():
     return render_template('checkout.html', form=form, grand_total=grand_total, grand_total_plus_shipping=grand_total_plus_shipping, quantity_total=quantity_total)
 
 @ecommerce_bp.route('/admin/')
-def admin():
+def admin() -> str:
     products = Product.query.all()
     products_in_stock = Product.query.filter(Product.stock > 0).count()
 
@@ -166,7 +175,7 @@ def admin():
     return render_template('admin/index.html', admin=True, products=products, products_in_stock=products_in_stock, orders=orders)
 
 @ecommerce_bp.route('/admin/add', methods=['GET', 'POST'])
-def add():
+def add() -> (Response | str):
     form = AddProduct()
 
     if form.validate_on_submit():
@@ -182,7 +191,7 @@ def add():
     return render_template('admin/add-product.html', admin=True, form=form)
 
 @ecommerce_bp.route('/admin/order/<order_id>')
-def order(order_id):
+def order(order_id: int) -> str:
     order = Order.query.filter_by(id=int(order_id)).first()
 
     return render_template('admin/view-order.html', order=order, admin=True)
