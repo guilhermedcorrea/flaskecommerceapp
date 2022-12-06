@@ -51,9 +51,10 @@ class Checkout(FlaskForm):
     email = StringField('Email')
     Endereco = StringField('Endereco')
     cidade = StringField('Cidade')
-    estado = SelectField('Estado', choices=[('CA', 'California'), ('WA', 'Washington'), ('NV', 'Nevada')])
-    pais = SelectField('Pais', choices=[('US', 'United States'), ('UK', 'United Kingdom'), ('FRA', 'France')])
+    estado = SelectField('Estado', choices=[('SP', 'Campinas'), ('SP', 'São Bernardo'), ('SP', 'Ribeirao Preto')])
+    pais = SelectField('Pais', choices=[('SP', 'São Jose Dos Campos'), ('BA', 'Salvador'), ('MG', 'Belo Horizonte')])
     payment_type = SelectField('Payment Type', choices=[('CK', 'Check'), ('WT', 'Wire Transfer')])
+
 
 from typing import TypeVar, List
 

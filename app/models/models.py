@@ -8,6 +8,11 @@ def configure(app):
     app.db = db
     
 
+"""
+Tabelas Referentes a informaçoes de produtos
+pedidos e quantidades
+
+"""
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
