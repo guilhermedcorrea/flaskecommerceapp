@@ -1,52 +1,61 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-
+import os
 
 app = Flask(__name__)
 
 #photos = UploadSet('photos', IMAGES)
 
-app.config['UPLOADED_PHOTOS_DEST'] = r'C:\Users\Guilherme\Pictures\Nova pasta (5)\18 - checkout screen cart details\images'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///trendy.db'
+app.config['UPLOADED_PHOTOS_DEST'] = r'C:\flaskecommerce\images'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(r"C:\flaskecommerce", 'storeapp.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['DEBUG'] = True
 app.config['SECRET_KEY'] = 'mysecret'
+    
 
 #configure_uploads(app, photos)
 
 db = SQLAlchemy(app)
 
-db.create_all()
+
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True)
-    price = db.Column(db.Integer) #in cents
-    stock = db.Column(db.Integer)
-    description = db.Column(db.String(500))
-    image = db.Column(db.String(100))
+    nome = db.Column(db.String(50), unique=True)
+    preco = db.Column(db.Integer) #in cents
+    saldo = db.Column(db.Integer)
+    descricao = db.Column(db.String(500))
+    marca = db.Column(db.String(500))
+    imagem = db.Column(db.String(100))
+
+    orders = db.relationship('Order_Item', backref='product', lazy=True)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    reference = db.Column(db.String(5))
-    first_name = db.Column(db.String(20))
-    last_name = db.Column(db.String(20))
-    phone_number = db.Column(db.Integer)
+    referencia = db.Column(db.String(5))
+    nome = db.Column(db.String(20))
+    sobrenome = db.Column(db.String(20))
+    telefone = db.Column(db.Integer)
     email = db.Column(db.String(50))
-    address = db.Column(db.String(100))
-    city = db.Column(db.String(100))
-    state = db.Column(db.String(20))
-    country = db.Column(db.String(20))
+    endereco = db.Column(db.String(100))
+    cidade = db.Column(db.String(100))
+    estadi = db.Column(db.String(20))
+    pais = db.Column(db.String(20))
     status = db.Column(db.String(10))
-    payment_type = db.Column(db.String(10))
+    pagamento = db.Column(db.String(10))
     items = db.relationship('Order_Item', backref='order', lazy=True)
+
+    def order_total(self):
+        return db.session.query(db.func.sum(Order_Item.quantidade * Product.preco)).join(Product).filter(Order_Item.order_id == self.id).scalar() + 1000
+
+    def quantity_total(self):
+        return db.session.query(db.func.sum(Order_Item.quantidade)).filter(Order_Item.order_id == self.id).scalar()
 
 class Order_Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    quantity = db.Column(db.Integer)
+    quantidade = db.Column(db.Integer)
 
 
-def teste():
-    db.create_all()
 

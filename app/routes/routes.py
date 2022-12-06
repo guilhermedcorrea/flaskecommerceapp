@@ -32,32 +32,27 @@ current_app.config['UPLOADED_PHOTOS_DEST'] = r'C:\flaskecommerce\app\images\\'
 
 photos = UploadSet('photos', IMAGES)
 configure_uploads(current_app, photos)
-class Order_Item(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    quantity = db.Column(db.Integer)
 
 class AddProduct(FlaskForm):
-    name = StringField('Name')
-    price = IntegerField('Price')
-    stock = IntegerField('Stock')
-    description = TextAreaField('Description')
-    image = FileField('Image', validators=[FileAllowed(IMAGES, 'Only images are accepted.')])
+    nome = StringField('Nome')
+    preco = IntegerField('Preco')
+    saldo = IntegerField('Saldo')
+    descricao = TextAreaField('Descricao')
+    imagem = FileField('Imagem', validators=[FileAllowed(IMAGES, 'Only images are accepted.')])
 
 class AddToCart(FlaskForm):
-    quantity = IntegerField('Quantity')
+    quantidade = IntegerField('Quantidade')
     id = HiddenField('ID')
 
 class Checkout(FlaskForm):
-    first_name = StringField('First Name')
-    last_name = StringField('Last Name')
-    phone_number = StringField('Number')
+    nome = StringField('Nome')
+    sobrenome = StringField('Sobrenome')
+    Telefone = StringField('Numero')
     email = StringField('Email')
-    address = StringField('Address')
-    city = StringField('City')
-    state = SelectField('State', choices=[('CA', 'California'), ('WA', 'Washington'), ('NV', 'Nevada')])
-    country = SelectField('Country', choices=[('US', 'United States'), ('UK', 'United Kingdom'), ('FRA', 'France')])
+    Endereco = StringField('Endereco')
+    cidade = StringField('Cidade')
+    estado = SelectField('Estado', choices=[('CA', 'California'), ('WA', 'Washington'), ('NV', 'Nevada')])
+    pais = SelectField('Pais', choices=[('US', 'United States'), ('UK', 'United Kingdom'), ('FRA', 'France')])
     payment_type = SelectField('Payment Type', choices=[('CK', 'Check'), ('WT', 'Wire Transfer')])
 
 from typing import TypeVar, List
@@ -73,13 +68,13 @@ def handle_cart() ->T:
     for item in session['cart']:
         product = Product.query.filter_by(id=item['id']).first()
 
-        quantity = int(item['quantity'])
-        total = quantity * product.price
+        quantidade = int(item['quantidade'])
+        total = quantidade * product.price
         grand_total += total
 
-        quantity_total += quantity
+        quantity_total += quantidade
 
-        products.append({'id' : product.id, 'name' : product.name, 'price' :  product.price, 'image' : product.image, 'quantity' : quantity, 'total': total, 'index': index})
+        products.append({'id' : product.id, 'nome' : product.nome, 'preco' :  product.preco, 'imagem' : product.imagem, 'quantidade' : quantidade, 'total': total, 'index': index})
         index += 1
     
     grand_total_plus_shipping = grand_total + 1000
@@ -105,7 +100,7 @@ def quick_add(id: int) -> Response:
     if 'cart' not in session:
         session['cart'] = []
 
-    session['cart'].append({'id' : id, 'quantity' : 1})
+    session['cart'].append({'id' : id, 'quantidade' : 1})
     session.modified = True
 
     return redirect(url_for('ecommerce.index'))
@@ -119,7 +114,7 @@ def add_to_cart() -> Response:
 
     if form.validate_on_submit():
 
-        session['cart'].append({'id' : form.id.data, 'quantity' : form.quantity.data})
+        session['cart'].append({'id' : form.id.data, 'quantidade' : form.quantidade.data})
         session.modified = True
 
     return redirect(url_for('ecommerce.index'))
@@ -150,10 +145,10 @@ def checkout() -> (Response | str):
         order.status = 'PENDING'
 
         for product in products:
-            order_item = Order_Item(quantity=product['quantity'], product_id=product['id'])
+            order_item = Order_Item(quantity=product['quantidade'], product_id=product['id'])
             order.items.append(order_item)
 
-            product = Product.query.filter_by(id=product['id']).update({'stock' : Product.stock - product['quantity']})
+            product = Product.query.filter_by(id=product['id']).update({'saldo' : Product.saldo - product['quantidade']})
 
         db.session.add(order)
         db.session.commit()
@@ -168,7 +163,7 @@ def checkout() -> (Response | str):
 @ecommerce_bp.route('/admin/')
 def admin() -> str:
     products = Product.query.all()
-    products_in_stock = Product.query.filter(Product.stock > 0).count()
+    products_in_stock = Product.query.filter(Product.saldo > 0).count()
 
     orders = Order.query.all()
 
