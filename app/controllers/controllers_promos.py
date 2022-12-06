@@ -7,6 +7,8 @@ def get_promos(f):
         return f(*args, **kwds)
     return wrapper
 
+
+
 @get_promos
 def verifica_promos():
     """Docstring"""

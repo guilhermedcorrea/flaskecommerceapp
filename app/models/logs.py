@@ -7,7 +7,10 @@ def configure(app):
     app.db = db
 
 
+"""
+Logs de informaçoes de alterações em geral
 
+"""
 class LogUser(db.Model):
     pass
 

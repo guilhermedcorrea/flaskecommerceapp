@@ -6,6 +6,8 @@ from config import UPLOADED_PHOTOS_DEST, SQLALCHEMY_DATABASE, SECRET_KEY
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
+
 db = SQLAlchemy()
 def create_app() -> Flask:
     app = Flask(__name__)
